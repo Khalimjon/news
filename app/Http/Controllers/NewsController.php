@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewsCreated;
 use App\Models\News;
 use App\Http\Requests\StoreNewsRequest;
 use App\Http\Requests\UpdateNewsRequest;
+use App\Jobs\ChangeNews;
+use App\Jobs\UploadBigFile;
+use GuzzleHttp\Psr7\UploadedFile;
 
 class NewsController extends Controller
 {
@@ -32,13 +36,20 @@ class NewsController extends Controller
      */
     public function store(StoreNewsRequest $request)
     {
-        $path = $request->file('photo')->store('news');
+        if($request->file('photo')){
+            $path = $request->file('photo')->store('news');
+        }
 
-        $data = $request->validated();
+        $newsData = $request->validated();
+        $newsData['photo'] = $path ?? null;
 
-        $data['photo'] = $path;
+        // Create a new News instance
+        $news = News::create($newsData);
 
-        News::create($data);
+        NewsCreated::dispatch($news);
+
+        // Dispatch the ChangeNews job with the News instance
+        ChangeNews::dispatch($news);
 
         return redirect()->route('admin.news.index');
     }
