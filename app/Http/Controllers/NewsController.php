@@ -8,6 +8,7 @@ use App\Http\Requests\StoreNewsRequest;
 use App\Http\Requests\UpdateNewsRequest;
 use App\Jobs\ChangeNews;
 use App\Jobs\UploadBigFile;
+use App\Models\User;
 use GuzzleHttp\Psr7\UploadedFile;
 
 class NewsController extends Controller
